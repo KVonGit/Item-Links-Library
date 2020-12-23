@@ -1,29 +1,25 @@
 "use strict"
 
-/** # item_links library
+/** 
+ * 
  * @version 0.8
  * @author {@link https://github.com/KVonGit|KV}
  * @fileoverview Add hyperlink functionality to {@link https://github.com/ThePix/QuestJS|QuestJS} v 0.3.
- *
- * ## IMPORTANT!!!
  * 
- * ### Things the game author (this means you) must do before this library will work:
+ * ---
+ * ###### **NOTE**
  * 
- * 1. Make sure you have this file loading before any files which create rooms or items! 
+ * This library is now included in QuestJS as of QuestJS version 0.4, but the library is not
+ * loaded by default.
  * 
- * 2. lang additions & mods
- *   (NOTE: These three MUST be set up in settings.js, or any other file which loads before this one.)
+ * View [the instructions](https://github.com/ThePix/QuestJS/wiki/Hyperlinks "https://github.com/ThePix/QuestJS/wiki/Hyperlinks") on the [QuestJS Wiki](https://github.com/ThePix/QuestJS/wiki).
  * 
- *   New ones NECESSARY for this library!  
+ * This code is sometimes more up to date than the file which is included in Quest.
  * 
- *     lang.inside = "inside";
- *     lang.on_top = "on top";
- *     lang.carrying = "carrying";
- */
-
-/**
- * ## These mods are not necessary for the library, but I like to use them.
+ * ---
+ * #### These mods are not necessary, but I like to use them.
  * 
+ * ```
  * lang.contentsForData.surface.prefix = 'on which you see ';
  * lang.contentsForData.surface.suffix = '';
  * lang.open_successful = "Done.";
@@ -32,9 +28,15 @@
  * lang.look_inside = "Inside, {nv:char:can} see {param:list}.";
  * lang.take_successful = "Taken.";
  * lang.drop_successful = "Dropped.";
+ * ```
  */
 
- /** Enable item links and exit links */
+ /** 
+  * @namespace
+  * @property {object} settings
+  * @property {boolean} settings.linksEnabled - Enable item links and exit links
+  * @example settings.linksEnabled = true;
+  */
 settings.linksEnabled = true;
 
 /**
@@ -109,8 +111,8 @@ function getArticle(item, type){
 /** 
  * @function getDisplayAliasLink
  * @param {object} item - The in-game item
- * @param {object} options - Includes options such as 'article' (@see {@link getArticle})
- * @param {boolean} cap - If <code>true</code>, first letter of string will be capitallized
+ * @param {object} [options] - Includes options such as 'article' (@see {@link getArticle})
+ * @param {boolean} [cap] - If <code>true</code>, first letter of string will be capitallized
  * @return {string} - The item's link
  */
 function getDisplayAliasLink(item, options, cap){
@@ -212,7 +214,7 @@ function hasChildren(item){
 /**
  * @function getAllChildren
  * @param {object} item - The in-game item
- * @param {boolean} isRoom - Set to <code>false</code> by default.  If set to <code>true</code>, excludes the player and the player's inventory.
+ * @param {boolean} [isRoom] - Set to <code>false</code> by default.  If set to <code>true</code>, excludes the player and the player's inventory.
  * @returns {array} An array of items
  */
 function getAllChildren(item, isRoom=false){
@@ -268,8 +270,8 @@ function getAllChildrenLinks(item){
  * @function getItemLink
  * @description Uses <code>{@link getName}</code> to return a link for the item.
  * @param {object} obj - The in-game item
- * @param {string} id - Optional display alias.  This parameter is not required.
- * @param {boolean} capitalise - Option to capitalize the first letter in the string.  Not required.  Default is <code>false</code>.
+ * @param {string} [id] - Optional display alias.  This parameter is not required.
+ * @param {boolean} [capitalise] - Option to capitalize the first letter in the string.  Not required.  Default is <code>false</code>.
  * @returns {string} The item's link
  */
 function getItemLink(obj, id='_DEFAULT_', capitalise=false){
@@ -421,7 +423,7 @@ function updateExitLinks(){
  * @property {object} util
  * @property {function} util.listContents
  * @param {object} situation - I'm honestly not sure what this is for. 
- * @param {boolean} modified - Not required.  Set to true by default, to invoke the item's name modifier functions.
+ * @param {boolean} [modified] - Not required.  Set to true by default, to invoke the item's name modifier functions.
  * @description ##### MODDED to return an array of strings containing item links
  * 
  * NOTE: <code>this</code> targets the in-game item
@@ -459,7 +461,7 @@ lang.getNameOG = lang.getName;
  * @property {object} lang
  * @property {function} lang.getName - Modified for this library to return an item link.
  * @param {object} item - The in-game item 
- * @param {object} options - The options can include indefinite or definite article, possessive, pronoun, count, or pluralAlias.
+ * @param {object} [options] - The options can include indefinite or definite article, possessive, pronoun, count, or pluralAlias.
  * @returns {string} String with the item's item link or a pronoun with no link
  */
 lang.getName = (item, options) => {
