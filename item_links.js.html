@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: item_links.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: item_links.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>"use strict"
+
+/** # item_links library
+ * @version 0.8
+ * @author {@link https://github.com/KVonGit|KV}
+ * @fileoverview Add hyperlink functionality to {@link https://github.com/ThePix/QuestJS|QuestJS} v 0.3.
+ *
+ * ## IMPORTANT!!!
+ * 
+ * ### Things the game author (this means you) must do before this library will work:
+ * 
+ * 1. Make sure you have this file loading before any files which create rooms or items! 
+ * 
+ * 2. lang additions &amp; mods
+ *   (NOTE: These three MUST be set up in settings.js, or any other file which loads before this one.)
+ * 
+ *   New ones NECESSARY for this library!  
+ * 
+ *     lang.inside = "inside";
+ *     lang.on_top = "on top";
+ *     lang.carrying = "carrying";
+ */
+
+/**
+ * ## These mods are not necessary for the library, but I like to use them.
+ * 
+ * lang.contentsForData.surface.prefix = 'on which you see ';
+ * lang.contentsForData.surface.suffix = '';
+ * lang.open_successful = "Done.";
+ * lang.close_successful = "Done.";
+ * lang.inside_container = "{nv:item:be:true} inside {sb:container}.";
+ * lang.look_inside = "Inside, {nv:char:can} see {param:list}.";
+ * lang.take_successful = "Taken.";
+ * lang.drop_successful = "Dropped.";
+ */
+
+ /** Enable item links and exit links */
+settings.linksEnabled = true;
+
+/**
+ * @function itemLinks
+ * @description &lt;code>update&lt;/code> keeps the verb links and exit links updated after each turn.
+ * @see {@link updateAllItemLinkVerbs} &amp; {@link updateExitLinks}
+ */
+const itemLinks = {};
+io.modulesToUpdate.push(itemLinks);
+itemLinks.update = function() {
+	if(settings.linksEnabled){
+		if(settings.debugItemLinks) {
+			console.info("running itemLinks.update() to update verbs . . .");
+		}
+		updateAllItemLinkVerbs();
+		updateExitLinks();
+	}
+};
+
+/** @function updateAllItemLinkVerbs */
+function updateAllItemLinkVerbs(){
+	let verbEls = $("[link-verb]");
+	Object.keys(verbEls).forEach(i => {
+		let el = verbEls[i];
+		let objName = $(el).attr("obj");
+		if (!objName) return;
+		let obj = w[objName];
+		updateItemLinkVerbs(obj);
+	})
+}
+
+/** 
+ * @function updateItemLinkVerbs
+ * @param {object} obj The in-game item
+ * @description Sets the current available verbs in the item link dropdown menu
+ * @see {@link updateAllItemLinkVerbs} &amp; {@link itemLinks}
+ */
+function updateItemLinkVerbs(obj){
+	let oName = obj.name;
+	if (!obj.scopeStatus) {
+		disableItemLink($(`[obj="${oName}"]`));
+		return;
+	}
+	enableItemLinks($(`[obj="${oName}"]`));
+	let id = obj.alias || obj.name;
+	let el = $(`[obj='${oName}-verbs-list-holder'`);
+	let endangered = el.hasClass("endangered-link") ? "endangered-link" : "";
+	let newVerbsEl = getVerbsLinks(obj, endangered);
+	el.html(newVerbsEl);
+}
+
+/** 
+ * @function getArticle
+ * @description Returns 'a', 'an', or 'the' when type is set to DEFINITE OR INDEFINITE.
+ * 
+ * Returns false otherwise.
+ * @param {object} item The in-game item
+ * @param {number} type DEFINITE or INDEFINITE
+ * @returns {string} type 'a', 'an', or 'the'
+ * @todo Should this simply &lt;code>return&lt;/code> rather than &lt;code>return false&lt;/code> if no type is requested?
+ */
+function getArticle(item, type){
+	if (!type) return false;
+	return type === DEFINITE ? lang.addDefiniteArticle(item) : lang.addIndefiniteArticle(item);
+}
+
+/** @function getDisplayAliasLink */
+function getDisplayAliasLink(item, options, cap){
+	let art = false;
+	if (options) art = options.article
+	let article = getArticle(item, art)
+	if (!article) {
+		article = '';
+	}
+	let s = article + getItemLink(item);
+	s = s.trim();
+	return s;
+}
+
+/**
+ * @function handleExamineHolder
+ * @description
+ * Used by npcs and containers.
+ * 
+ * @todo Learn about name modifiers, because this code may be reinventing the wheel.
+ */
+function handleExamineHolder(params){
+	let obj = parser.currentCommand.objects[0][0];
+	if (!obj) return;
+	if (!obj.container &amp;&amp; !obj.npc) return;
+	if (obj.container) {
+		if (!obj.closed || obj.transparent) {
+			let contents = obj.getContents();
+			contents = contents.filter(o => !o.scenery)
+			if (contents.length &lt;= 0){
+				return;
+			}
+			let pre = obj.contentsType === 'surface' ? lang.on_top : lang.inside;
+			pre = sentenceCase(pre);
+			let subjVerb = processText("{pv:pov:see}", {pov:game.player});
+			pre += `, ${subjVerb} `;
+			contents = settings.linksEnabled ? getContentsLink(obj) : contents;
+			msg(`${pre}${contents}.`);
+		}
+	} else {
+		let contents =  getAllChildrenLinks(obj)
+		if (contents == 'nothing') return;
+		let pre = processText('{pv:char:be:true} ' + lang.carrying, {char:obj});
+		//contents = formatList(contents,{modified:true,doNotSort:true,lastJoiner:'and'});
+		msg(`${pre} ${contents}.`);
+	}
+}
+
+/**
+ * @function getContentsLink
+ * @description
+ * Used for containers.  (NPCs use getAllChildrenLinks.)
+ */
+function getContentsLink(o) {
+  let s = '';
+  const contents = o.getContents(world.LOOK);
+  if (contents.length > 0 &amp;&amp; (!o.closed || o.transparent)) {
+    if (!o.listContents) {
+		return getAllChildrenLinks(o);
+	}
+	s = o.listContents(world.LOOK);
+  }
+  return s
+}
+
+/**
+ * @function canHold
+ * @description Returns true if the item may have contents.
+ * @returns {boolean} True if the item is a container, surface, or NPC
+ */
+function canHold(obj){
+	return ( obj.container &amp;&amp; ( !obj.closed || obj.transparent ) ) || obj.npc;
+}
+
+/** @function getDirectChildren */
+function getDirectChildren(item){
+	if (!item.getContents) return [];
+	return item.getContents(item);
+}
+
+/** @function hasChildren */
+function hasChildren(item){
+	return item.getContents(item).length > 0;
+}
+
+/** @function getAllChildren */
+function getAllChildren(item, isRoom=false){
+	let result = [];
+	let children = getDirectChildren(item);
+	if (isRoom){
+		children = children.filter(o =>o != game.player);
+	}
+	if (children.length &lt; 1) return [];
+	children.forEach(child => {
+		result.push(child);
+		// Added the check on the next line due to occasional errors.
+		let grandchildren = child.getContents ? child.getContents(child) : [];
+		if (grandchildren.length > 0){
+			result.push(getAllChildren(child));
+		}
+	})
+	return result;
+}
+
+/** @function getRoomContents */
+function getRoomContents(room){
+	let result = [];
+	let children = getAllChildren(room, true);
+	if (children.length &lt; 1) return [];
+	children.forEach(child => {
+		//console.log(child);
+		result.push(child);
+		// Added the check on the next line due to occasional errors.
+		let grandchildren = child.getContents ? child.getContents(child) : [];
+		if (grandchildren.length > 0){
+			result.push(getAllChildren(child));
+		}
+	})
+	return result;
+}
+
+/**
+ * @function getAllChildrenLinks
+ * @description
+ * Used for NPCs. (Containers use {@link getContentsLink}.)
+ */
+function getAllChildrenLinks(item){
+	let kids = getDirectChildren(item);
+	kids = kids.map(o => lang.getName(o,{modified:true,article:INDEFINITE}));
+	return formatList(kids,{doNotSort:true, lastJoiner:lang.list_and, nothing:lang.list_nothing});
+}
+
+/** @function getItemLink */
+function getItemLink(obj, id='_DEFAULT_', capitalise=false){
+	if(!settings.linksEnabled){
+		var s = obj.alias || obj.name;
+		return s;
+	}
+	var oName = obj.name;
+	if (id === '_DEFAULT_'){
+		 id = obj.alias || obj.name;
+	}
+	id = capitalise ? sentenceCase(id) : id;
+	var dispAlias = lang.getNameOG(obj);
+	var s = `&lt;span class="object-link dropdown">`; 
+
+	s +=`&lt;span onclick="toggleDropdown($(this).next())" obj="${oName}" `+
+	`class="droplink" name="${oName}-link">${id}&lt;/span>`;
+
+	s += `&lt;span obj="${oName}" class="dropdown-content">`;
+
+	s += `&lt;span obj="${oName}-verbs-list-holder">`;
+	s += getVerbsLinks(obj);
+	s += `&lt;/span>&lt;/span>&lt;/span>`;
+	return s;
+}
+
+/** @function getVerbsLinks */
+function getVerbsLinks(obj){
+	let verbArr = obj.getVerbs();
+	let oName = obj.name;
+	let id = obj.alias || obj.name;
+	let s = ``;
+	if (verbArr.length>0){
+		verbArr.forEach (o=>{
+			o = sentenceCase(o);
+			s += `&lt;span class="list-link-verb" `+
+			`onclick="$(this).parent().parent().toggle();handleObjLnkClick('${o} '+$(this).attr('obj-alias'),this,'${o}','${id}');" `+
+			`link-verb="${o}" obj-alias="${id}" obj="${oName}">${o}&lt;/span>`;
+		})
+	}
+	return s;
+}
+
+/** @function toggleDropdown */
+function toggleDropdown(element) {
+    $(element).toggle();
+    var disp = $(element).css('display');
+    let newDisp = disp === 'none' ? 'block' : 'block';
+    $(element).css('display', newDisp);
+    
+}
+
+/** @function handleObjLnkClick */
+function handleObjLnkClick(cmd,el,verb,objAlias){
+	enterButtonPress(cmd);
+}
+
+/** @function disableItemLink */
+function disableItemLink(el){
+	let type = ''
+	if ($(el).hasClass("dropdown")) type = 'dropdown'
+	if ($(el).hasClass("droplink")) type = 'droplink' 
+	$(el).addClass(`disabled disabled-${type}`).attr("name","dead-droplink").removeClass(type).css('cursor','default');
+}
+
+/** @function enableItemLinks */
+function enableItemLinks(el){
+	let type = '';
+	if ($(el).hasClass("disabled-dropdown")) type = 'dropdown'
+	if ($(el).hasClass("disabled-droplink")) type = 'droplink'
+	$(el).removeClass("disabled").removeClass(`disabled-${type}`).addClass(type).attr("name",$(el).attr("obj")).css("cursor","pointer");
+}
+
+/** @function enterButtonPress */
+function enterButtonPress(cmd){
+	//Calling this function with no arg will cause s to default to the text in the textbox.
+	if(cmd) $('#textbox').val(cmd);
+	const s = $('#textbox').val();
+    io.msgInputText(s); //This emulates printing the echo of the player's command
+    if (s) {
+		if (io.savedCommands[io.savedCommands.length - 1] !== s) {
+			io.savedCommands.push(s);
+        }
+        io.savedCommandsPos = io.savedCommands.length;
+        parser.parse(s);
+        $('#textbox').val('');
+	}
+}
+
+/** @function updateExitLinks */
+function updateExitLinks(){
+	const exits = util.exitList();
+	let link = $(`.exit-link`);
+	if (link.length > 0){
+		Object.values(link).forEach(el => {
+			let dir = $(el).attr('exit');
+			if (!dir) return
+			let ind = exits.indexOf(dir);
+			if (ind &lt; 0) {
+				$(el).addClass("disabled")
+				el.innerHTML = dir;
+			} else {
+				$(el).removeClass("disabled");
+				el.innerHTML = processText(`{cmd:${dir}}`);
+			}
+		})
+	}
+}
+
+//------
+// MODS
+//------
+
+// MODDED for item links
+util.listContents = function(situation, modified = true) {
+  let objArr = getAllChildrenLinks(this);
+ return objArr
+};
+
+// MOD!!!
+findCmd('Inv').script = function() {
+  if (settings.linksEnabled) {
+	  //listOfOjects = listOfOjects.map(o => getDisplayAliasLink(o, {article:INDEFINITE}))
+	  msg(lang.inventoryPreamble + " " + getAllChildrenLinks(game.player) + ".");
+	  return settings.lookCountsAsTurn ? world.SUCCESS : world.SUCCESS_NO_TURNSCRIPTS;
+  }
+  let listOfOjects = game.player.getContents(world.INVENTORY);
+  msg(lang.inventoryPreamble + " " + formatList(listOfOjects, {lastJoiner:lang.list_and, modified:true, nothing:lang.list_nothing, loc:game.player.name}) + ".");
+  return settings.lookCountsAsTurn ? world.SUCCESS : world.SUCCESS_NO_TURNSCRIPTS;
+};
+
+/** The original lang.getName, with a new name */
+lang.getNameOG = lang.getName;
+
+/**
+ * Modified for this library return an item link.
+ * @param {object} item - The in-game item 
+ * @param {object} options - The options can include indefinite or definite article, possessive, pronoun, count, or pluralAlias.
+ * @returns {string} String with the item's item link or a pronoun with no link
+ */
+lang.getName = (item, options) => {
+    if (!settings.linksEnabled) {
+		return lang.getNameOG(item, options);
+	}
+	if (!options) options = {}
+    if (!item.alias) item.alias = item.name
+    let s = ''
+    let count = options[item.name + '_count'] ? options[item.name + '_count'] : false
+    if (!count &amp;&amp; options.loc &amp;&amp; item.countable) count = item.countAtLoc(options.loc)
+
+    if (item.pronouns === lang.pronouns.firstperson || item.pronouns === lang.pronouns.secondperson) {
+      s = options.possessive ? item.pronouns.poss_adj : item.pronouns.subjective;
+      s += util.getNameModifiers(item, options); // ADDED by KV
+      return s; // ADDED by KV
+    }
+
+    else {    
+      if (count &amp;&amp; count > 1) {
+        s += lang.toWords(count) + ' '
+      }
+      if (item.getAdjective) {
+        s += item.getAdjective()
+      }
+      if (!count || count === 1) {
+        s += item.alias
+      }
+      else if (item.pluralAlias) {
+        s += item.pluralAlias
+      }
+      else {
+        s += item.alias + "s"
+      }
+      if (options.possessive) {
+        if (s.endsWith('s')) {
+          s += "'"
+        }
+        else { 
+          s += "'s"
+        }
+      }
+    }
+    let art = getArticle(item, options.article);
+    if (!art) art = '';
+    let cap = options &amp;&amp; options.capital;
+    if (!item.room) s = getItemLink(item, s, cap);
+    s = art + s;
+    s += util.getNameModifiers(item, options);
+    return s;
+};
+
+// Added exit links.  Added this class to css to underline.
+tp.text_processors.exits = function(arr, params) {
+  let elClass = settings.linksEnabled ? `-link` : ``;
+  const list = [];
+  util.exitList().forEach(exit => {
+	  let s = settings.linksEnabled ? `{cmd:${exit}}` : `${exit}`;
+	  let el = processText(`&lt;span class="exit${elClass}" exit="${exit}">${s}&lt;/span>`);
+	  list.push(el);
+  })
+  return formatList(list, {lastJoiner:lang.list_or, nothing:lang.list_nowhere});
+}
+
+
+//----------------
+// END OF MODS
+//----------------
+
+
+//Capture clicks for the objects links
+settings.clickEvents = [{one0:`&lt;span>_PLACEHOLDER_&lt;/span>`}];
+window.onclick = function(event) {
+	if (!event.target.matches('.droplink')) {
+		$(".dropdown-content").hide();
+	}else{
+		settings.clickEvents.unshift(event.target);
+		if (typeof(settings.clickEvents[1].nextSibling)!=='undefined' &amp;&amp;  settings.clickEvents[1].nextSibling!==null){
+			if (settings.clickEvents[1] !== event.target &amp;&amp; settings.clickEvents[1].nextSibling.style.display==="block" &amp;&amp; event.target.matches('.droplink')){
+				$(".dropdown-content").hide();
+				event.target.nextSibling.style.display="block";
+			}
+		}
+	}
+}
+
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#canHold">canHold</a></li><li><a href="global.html#disableItemLink">disableItemLink</a></li><li><a href="global.html#enableItemLinks">enableItemLinks</a></li><li><a href="global.html#enterButtonPress">enterButtonPress</a></li><li><a href="global.html#getAllChildren">getAllChildren</a></li><li><a href="global.html#getAllChildrenLinks">getAllChildrenLinks</a></li><li><a href="global.html#getArticle">getArticle</a></li><li><a href="global.html#getContentsLink">getContentsLink</a></li><li><a href="global.html#getDirectChildren">getDirectChildren</a></li><li><a href="global.html#getDisplayAliasLink">getDisplayAliasLink</a></li><li><a href="global.html#getItemLink">getItemLink</a></li><li><a href="global.html#getRoomContents">getRoomContents</a></li><li><a href="global.html#getVerbsLinks">getVerbsLinks</a></li><li><a href="global.html#handleExamineHolder">handleExamineHolder</a></li><li><a href="global.html#handleObjLnkClick">handleObjLnkClick</a></li><li><a href="global.html#hasChildren">hasChildren</a></li><li><a href="global.html#itemLinks">itemLinks</a></li><li><a href="global.html#toggleDropdown">toggleDropdown</a></li><li><a href="global.html#updateAllItemLinkVerbs">updateAllItemLinkVerbs</a></li><li><a href="global.html#updateExitLinks">updateExitLinks</a></li><li><a href="global.html#updateItemLinkVerbs">updateItemLinkVerbs</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.6</a> on Wed Dec 23 2020 08:03:20 GMT-0600 (Central Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
