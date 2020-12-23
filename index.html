@@ -64,21 +64,23 @@
     
         
             <div class="description"><p>Add hyperlink functionality to <a href="https://github.com/ThePix/QuestJS">QuestJS</a> v 0.3.</p>
-<h2>IMPORTANT!!!</h2>
-<h3>Things the game author (this means you) must do before this library will work:</h3>
-<ol>
-<li>
-<p>Make sure you have this file loading before any files which create rooms or items!</p>
-</li>
-<li>
-<p>lang additions &amp; mods
-(NOTE: These three MUST be set up in settings.js, or any other file which loads before this one.)</p>
-</li>
-</ol>
-<p>New ones NECESSARY for this library!</p>
-<pre><code>lang.inside = &quot;inside&quot;;
-lang.on_top = &quot;on top&quot;;
-lang.carrying = &quot;carrying&quot;;</code></pre></div>
+<hr>
+<h6><strong>NOTE</strong></h6>
+<p>This library is now included in QuestJS as of QuestJS version 0.4, but the library is not
+loaded by default.</p>
+<p>View <a href="https://github.com/ThePix/QuestJS/wiki/Hyperlinks" title="https://github.com/ThePix/QuestJS/wiki/Hyperlinks">the instructions</a> on the <a href="https://github.com/ThePix/QuestJS/wiki">QuestJS Wiki</a>.</p>
+<p>This code is sometimes more up to date than the file which is included in Quest.</p>
+<hr>
+<h4>These mods are not necessary, but I like to use them.</h4>
+<pre class="prettyprint source"><code>lang.contentsForData.surface.prefix = 'on which you see ';
+lang.contentsForData.surface.suffix = '';
+lang.open_successful = &quot;Done.&quot;;
+lang.close_successful = &quot;Done.&quot;;
+lang.inside_container = &quot;{nv:item:be:true} inside {sb:container}.&quot;;
+lang.look_inside = &quot;Inside, {nv:char:can} see {param:list}.&quot;;
+lang.take_successful = &quot;Taken.&quot;;
+lang.drop_successful = &quot;Dropped.&quot;;
+</code></pre></div>
         
 
         
@@ -168,13 +170,13 @@ lang.carrying = &quot;carrying&quot;;</code></pre></div>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="itemLinks.html">itemLinks</a></li><li><a href="lang.getName.html">getName</a></li><li><a href="lang.getNameOG.html">getNameOG</a></li><li><a href="settings.clickEvents.html">clickEvents</a></li><li><a href="tp.text_processors.exits.html">exits</a></li><li><a href="util.listContents.html">listContents</a></li><li><a href="window.onclick.html">onclick</a></li></ul><h3>Global</h3><ul><li><a href="global.html#canHold">canHold</a></li><li><a href="global.html#disableItemLink">disableItemLink</a></li><li><a href="global.html#enableItemLinks">enableItemLinks</a></li><li><a href="global.html#enterButtonPress">enterButtonPress</a></li><li><a href="global.html#getAllChildren">getAllChildren</a></li><li><a href="global.html#getAllChildrenLinks">getAllChildrenLinks</a></li><li><a href="global.html#getArticle">getArticle</a></li><li><a href="global.html#getContentsLink">getContentsLink</a></li><li><a href="global.html#getDirectChildren">getDirectChildren</a></li><li><a href="global.html#getDisplayAliasLink">getDisplayAliasLink</a></li><li><a href="global.html#getItemLink">getItemLink</a></li><li><a href="global.html#getRoomContents">getRoomContents</a></li><li><a href="global.html#getVerbsLinks">getVerbsLinks</a></li><li><a href="global.html#handleExamineHolder">handleExamineHolder</a></li><li><a href="global.html#handleObjLnkClick">handleObjLnkClick</a></li><li><a href="global.html#hasChildren">hasChildren</a></li><li><a href="global.html#toggleDropdown">toggleDropdown</a></li><li><a href="global.html#updateAllItemLinkVerbs">updateAllItemLinkVerbs</a></li><li><a href="global.html#updateExitLinks">updateExitLinks</a></li><li><a href="global.html#updateItemLinkVerbs">updateItemLinkVerbs</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="itemLinks.html">itemLinks</a></li><li><a href="lang.getName.html">getName</a></li><li><a href="lang.getNameOG.html">getNameOG</a></li><li><a href="settings.clickEvents.html">clickEvents</a></li><li><a href="settings.linksEnabled.html">linksEnabled</a></li><li><a href="tp.text_processors.exits.html">exits</a></li><li><a href="util.listContents.html">listContents</a></li><li><a href="window.onclick.html">onclick</a></li></ul><h3>Global</h3><ul><li><a href="global.html#canHold">canHold</a></li><li><a href="global.html#disableItemLink">disableItemLink</a></li><li><a href="global.html#enableItemLinks">enableItemLinks</a></li><li><a href="global.html#enterButtonPress">enterButtonPress</a></li><li><a href="global.html#getAllChildren">getAllChildren</a></li><li><a href="global.html#getAllChildrenLinks">getAllChildrenLinks</a></li><li><a href="global.html#getArticle">getArticle</a></li><li><a href="global.html#getContentsLink">getContentsLink</a></li><li><a href="global.html#getDirectChildren">getDirectChildren</a></li><li><a href="global.html#getDisplayAliasLink">getDisplayAliasLink</a></li><li><a href="global.html#getItemLink">getItemLink</a></li><li><a href="global.html#getRoomContents">getRoomContents</a></li><li><a href="global.html#getVerbsLinks">getVerbsLinks</a></li><li><a href="global.html#handleExamineHolder">handleExamineHolder</a></li><li><a href="global.html#handleObjLnkClick">handleObjLnkClick</a></li><li><a href="global.html#hasChildren">hasChildren</a></li><li><a href="global.html#toggleDropdown">toggleDropdown</a></li><li><a href="global.html#updateAllItemLinkVerbs">updateAllItemLinkVerbs</a></li><li><a href="global.html#updateExitLinks">updateExitLinks</a></li><li><a href="global.html#updateItemLinkVerbs">updateItemLinkVerbs</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.6</a> on Wed Dec 23 2020 11:45:23 GMT-0600 (Central Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.6</a> on Wed Dec 23 2020 15:59:26 GMT-0600 (Central Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>
