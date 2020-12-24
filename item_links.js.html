@@ -365,10 +365,9 @@ function toggleDropdown(element) {
  * @function handleObjLnkClick
  * @description Handles item link actions passed via clicking
  * @param {string} cmd The command to be parsed
- * @see {@link enterButtonPress}
  */
 function handleObjLnkClick(cmd){
-	enterButtonPress(cmd);
+	runCmd(cmd);
 }
 
 /** 
@@ -393,28 +392,6 @@ function enableItemLinks(el){
 	if ($(el).hasClass("disabled-dropdown")) type = 'dropdown'
 	if ($(el).hasClass("disabled-droplink")) type = 'droplink'
 	$(el).removeClass("disabled").removeClass(`disabled-${type}`).addClass(type).attr("name",$(el).attr("obj")).css("cursor","pointer");
-}
-
-/** 
- * @function enterButtonPress
- * @param {string} cmd - The player's command (normally 'entered' via click)
- * @description Inserts the clicked command into the textbox element, then parses as if the player typed it and pressed ENTER.
- * 
- * This also pushes the command to &lt;code>io.savedCommands&lt;/code> for AGAIN purposes.  (This is exclusive to my game, not a default QuestJS thing!)
- */
-function enterButtonPress(cmd){
-	//Calling this function with no arg will cause s to default to the text in the textbox.
-	if(cmd) $('#textbox').val(cmd);
-	const s = $('#textbox').val();
-    io.msgInputText(s); //This emulates printing the echo of the player's command
-    if (s) {
-		if (io.savedCommands[io.savedCommands.length - 1] !== s) {
-			io.savedCommands.push(s);
-        }
-        io.savedCommandsPos = io.savedCommands.length;
-        parser.parse(s);
-        $('#textbox').val('');
-	}
 }
 
 /** 
@@ -656,13 +633,13 @@ window.onclick = function(event) {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="script.html">.script</a></li><li><a href="io.finish.html">finish</a></li><li><a href="io.finishBak.html">finishBak</a></li><li><a href="itemLinks.html">itemLinks</a></li><li><a href="lang.getName.html">getName</a></li><li><a href="lang.getNameOG.html">getNameOG</a></li><li><a href="settings.clickEvents.html">clickEvents</a></li><li><a href="settings.linksEnabled.html">linksEnabled</a></li><li><a href="tp.text_processors.exits.html">exits</a></li><li><a href="util.listContents.html">listContents</a></li><li><a href="window.onclick.html">onclick</a></li></ul><h3>Global</h3><ul><li><a href="global.html#canHold">canHold</a></li><li><a href="global.html#disableItemLink">disableItemLink</a></li><li><a href="global.html#enableItemLinks">enableItemLinks</a></li><li><a href="global.html#enterButtonPress">enterButtonPress</a></li><li><a href="global.html#getAllChildren">getAllChildren</a></li><li><a href="global.html#getAllChildrenLinks">getAllChildrenLinks</a></li><li><a href="global.html#getArticle">getArticle</a></li><li><a href="global.html#getContentsLink">getContentsLink</a></li><li><a href="global.html#getDirectChildren">getDirectChildren</a></li><li><a href="global.html#getDisplayAliasLink">getDisplayAliasLink</a></li><li><a href="global.html#getItemLink">getItemLink</a></li><li><a href="global.html#getRoomContents">getRoomContents</a></li><li><a href="global.html#getVerbsLinks">getVerbsLinks</a></li><li><a href="global.html#handleExamineHolder">handleExamineHolder</a></li><li><a href="global.html#handleObjLnkClick">handleObjLnkClick</a></li><li><a href="global.html#hasChildren">hasChildren</a></li><li><a href="global.html#toggleDropdown">toggleDropdown</a></li><li><a href="global.html#updateAllItemLinkVerbs">updateAllItemLinkVerbs</a></li><li><a href="global.html#updateExitLinks">updateExitLinks</a></li><li><a href="global.html#updateItemLinkVerbs">updateItemLinkVerbs</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="script.html">.script</a></li><li><a href="io.finish.html">finish</a></li><li><a href="io.finishBak.html">finishBak</a></li><li><a href="itemLinks.html">itemLinks</a></li><li><a href="lang.getName.html">getName</a></li><li><a href="lang.getNameOG.html">getNameOG</a></li><li><a href="settings.clickEvents.html">clickEvents</a></li><li><a href="settings.linksEnabled.html">linksEnabled</a></li><li><a href="tp.text_processors.exits.html">exits</a></li><li><a href="util.listContents.html">listContents</a></li><li><a href="window.onclick.html">onclick</a></li></ul><h3>Global</h3><ul><li><a href="global.html#canHold">canHold</a></li><li><a href="global.html#disableItemLink">disableItemLink</a></li><li><a href="global.html#enableItemLinks">enableItemLinks</a></li><li><a href="global.html#getAllChildren">getAllChildren</a></li><li><a href="global.html#getAllChildrenLinks">getAllChildrenLinks</a></li><li><a href="global.html#getArticle">getArticle</a></li><li><a href="global.html#getContentsLink">getContentsLink</a></li><li><a href="global.html#getDirectChildren">getDirectChildren</a></li><li><a href="global.html#getDisplayAliasLink">getDisplayAliasLink</a></li><li><a href="global.html#getItemLink">getItemLink</a></li><li><a href="global.html#getRoomContents">getRoomContents</a></li><li><a href="global.html#getVerbsLinks">getVerbsLinks</a></li><li><a href="global.html#handleExamineHolder">handleExamineHolder</a></li><li><a href="global.html#handleObjLnkClick">handleObjLnkClick</a></li><li><a href="global.html#hasChildren">hasChildren</a></li><li><a href="global.html#toggleDropdown">toggleDropdown</a></li><li><a href="global.html#updateAllItemLinkVerbs">updateAllItemLinkVerbs</a></li><li><a href="global.html#updateExitLinks">updateExitLinks</a></li><li><a href="global.html#updateItemLinkVerbs">updateItemLinkVerbs</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.6</a> on Wed Dec 23 2020 23:06:06 GMT-0600 (Central Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.6</a> on Wed Dec 23 2020 23:33:57 GMT-0600 (Central Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>
