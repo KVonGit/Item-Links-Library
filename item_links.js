@@ -2,9 +2,9 @@
 
 /** 
  * 
- * @version 0.8
+ * @version 0.9
  * @author {@link https://github.com/KVonGit|KV}
- * @fileoverview Add hyperlink functionality to {@link https://github.com/ThePix/QuestJS|QuestJS} v 0.3.
+ * @fileoverview Add hyperlink functionality to {@link https://github.com/ThePix/QuestJS|QuestJS}.
  * 
  * ---
  * ###### **NOTE**
@@ -131,7 +131,7 @@ function getDisplayAliasLink(item, options, cap){
  * @function handleExamineHolder
  * @description Used by npcs and containers to print a list of contents.
  * 
- * Must be manually added to an item's <code>nameModifierFunction</code>.
+ * Must be manually added to an item's <code>examine</code> attribute.
  * @param {object} params - Actually, this function does nothing with <code>params</code>
  * @todo Learn about name modifiers, because this code may be reinventing the wheel.
  */
@@ -276,16 +276,15 @@ function getAllChildrenLinks(item){
  */
 function getItemLink(obj, id='_DEFAULT_', capitalise=false){
 	if(!settings.linksEnabled){
-		var s = obj.alias || obj.name;
+		let s = lang.getNameOG(obj,{capitalise:capitalise});
 		return s;
 	}
-	var oName = obj.name;
+	let oName = obj.name;
 	if (id === '_DEFAULT_'){
 		 id = obj.alias || obj.name;
 	}
 	id = capitalise ? sentenceCase(id) : id;
-	var dispAlias = lang.getNameOG(obj);
-	var s = `<span class="object-link dropdown">`; 
+	let s = `<span class="object-link dropdown">`; 
 
 	s +=`<span onclick="toggleDropdown($(this).next())" obj="${oName}" `+
 	`class="droplink" name="${oName}-link">${id}</span>`;
@@ -328,7 +327,7 @@ function getVerbsLinks(obj){
  */
 function toggleDropdown(element) {
     $(element).toggle();
-    var disp = $(element).css('display');
+    let disp = $(element).css('display');
     let newDisp = disp === 'none' ? 'block' : 'block';
     $(element).css('display', newDisp);
     
@@ -414,6 +413,29 @@ function updateExitLinks(){
 	}
 }
 
+function disableAllLinks(){
+	let elArr = $('.exit-link');
+	Object.values(elArr).forEach(el => {
+		if ($(el).hasClass("exit-link")){
+			let dir = $(el).attr('exit');
+			$(el).addClass("disabled");
+			el.innerHTML = dir;
+		}
+	})
+	elArr = $(".dropdown");
+	Object.values(elArr).forEach(el => {
+		if ($(el).attr("name")){
+			disableItemLink(el);
+		}
+	})
+	elArr = $(".droplink");
+	Object.values(elArr).forEach(el => {
+		if ($(el).attr("name")){
+			disableItemLink(el);
+		}
+	})
+}
+
 //------
 // MODS
 //------
@@ -435,7 +457,31 @@ util.listContents = function(situation, modified = true) {
  return objArr
 };
 
-// MOD!!!
+/**
+ * @namespace
+ * @property {object} io
+ * @property {function} io.finishBak - A backup of <code>io.finish</code>
+ * @since 0.9
+ */
+io.finishBak = io.finish;
+
+/**
+ * @namespace
+ * @property {object} io
+ * @property {function} finish - Ends the story.  Modified to disable all item and object links beforehand.
+ * @since 0.9
+ */
+io.finish = () => {
+	disableAllLinks();
+	io.finishBak();
+};
+
+/**
+ * @namespace
+ * @property {object} Inv
+ * @property {function} Inv.script - Modified to return recursive contents links.
+ * @returns {number}
+ */
 findCmd('Inv').script = function() {
   if (settings.linksEnabled) {
 	  msg(lang.inventoryPreamble + " " + getAllChildrenLinks(game.player) + ".");
@@ -475,7 +521,7 @@ lang.getName = (item, options) => {
     if (!count && options.loc && item.countable) count = item.countAtLoc(options.loc)
 
     if (item.pronouns === lang.pronouns.firstperson || item.pronouns === lang.pronouns.secondperson) {
-      s = options.possessive ? item.pronouns.poss_adj : item.pronouns.subjective;
+	  s = options.possessive ? item.pronouns.poss_adj : item.pronouns.subjective;
       s += util.getNameModifiers(item, options); // ADDED by KV
       return s; // ADDED by KV
     }
