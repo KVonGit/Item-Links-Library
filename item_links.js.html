@@ -30,9 +30,9 @@
 
 /** 
  * 
- * @version 0.8
+ * @version 0.9
  * @author {@link https://github.com/KVonGit|KV}
- * @fileoverview Add hyperlink functionality to {@link https://github.com/ThePix/QuestJS|QuestJS} v 0.3.
+ * @fileoverview Add hyperlink functionality to {@link https://github.com/ThePix/QuestJS|QuestJS}.
  * 
  * ---
  * ###### **NOTE**
@@ -159,7 +159,7 @@ function getDisplayAliasLink(item, options, cap){
  * @function handleExamineHolder
  * @description Used by npcs and containers to print a list of contents.
  * 
- * Must be manually added to an item's &lt;code>nameModifierFunction&lt;/code>.
+ * Must be manually added to an item's &lt;code>examine&lt;/code> attribute.
  * @param {object} params - Actually, this function does nothing with &lt;code>params&lt;/code>
  * @todo Learn about name modifiers, because this code may be reinventing the wheel.
  */
@@ -304,16 +304,15 @@ function getAllChildrenLinks(item){
  */
 function getItemLink(obj, id='_DEFAULT_', capitalise=false){
 	if(!settings.linksEnabled){
-		var s = obj.alias || obj.name;
+		let s = lang.getNameOG(obj,{capitalise:capitalise});
 		return s;
 	}
-	var oName = obj.name;
+	let oName = obj.name;
 	if (id === '_DEFAULT_'){
 		 id = obj.alias || obj.name;
 	}
 	id = capitalise ? sentenceCase(id) : id;
-	var dispAlias = lang.getNameOG(obj);
-	var s = `&lt;span class="object-link dropdown">`; 
+	let s = `&lt;span class="object-link dropdown">`; 
 
 	s +=`&lt;span onclick="toggleDropdown($(this).next())" obj="${oName}" `+
 	`class="droplink" name="${oName}-link">${id}&lt;/span>`;
@@ -356,7 +355,7 @@ function getVerbsLinks(obj){
  */
 function toggleDropdown(element) {
     $(element).toggle();
-    var disp = $(element).css('display');
+    let disp = $(element).css('display');
     let newDisp = disp === 'none' ? 'block' : 'block';
     $(element).css('display', newDisp);
     
@@ -442,6 +441,29 @@ function updateExitLinks(){
 	}
 }
 
+function disableAllLinks(){
+	let elArr = $('.exit-link');
+	Object.values(elArr).forEach(el => {
+		if ($(el).hasClass("exit-link")){
+			let dir = $(el).attr('exit');
+			$(el).addClass("disabled");
+			el.innerHTML = dir;
+		}
+	})
+	elArr = $(".dropdown");
+	Object.values(elArr).forEach(el => {
+		if ($(el).attr("name")){
+			disableItemLink(el);
+		}
+	})
+	elArr = $(".droplink");
+	Object.values(elArr).forEach(el => {
+		if ($(el).attr("name")){
+			disableItemLink(el);
+		}
+	})
+}
+
 //------
 // MODS
 //------
@@ -463,7 +485,31 @@ util.listContents = function(situation, modified = true) {
  return objArr
 };
 
-// MOD!!!
+/**
+ * @namespace
+ * @property {object} io
+ * @property {function} io.finishBak - A backup of &lt;code>io.finish&lt;/code>
+ * @since 0.9
+ */
+io.finishBak = io.finish;
+
+/**
+ * @namespace
+ * @property {object} io
+ * @property {function} finish - Ends the story.  Modified to disable all item and object links beforehand.
+ * @since 0.9
+ */
+io.finish = () => {
+	disableAllLinks();
+	io.finishBak();
+};
+
+/**
+ * @namespace
+ * @property {object} Inv
+ * @property {function} Inv.script - Modified to return recursive contents links.
+ * @returns {number}
+ */
 findCmd('Inv').script = function() {
   if (settings.linksEnabled) {
 	  msg(lang.inventoryPreamble + " " + getAllChildrenLinks(game.player) + ".");
@@ -503,7 +549,7 @@ lang.getName = (item, options) => {
     if (!count &amp;&amp; options.loc &amp;&amp; item.countable) count = item.countAtLoc(options.loc)
 
     if (item.pronouns === lang.pronouns.firstperson || item.pronouns === lang.pronouns.secondperson) {
-      s = options.possessive ? item.pronouns.poss_adj : item.pronouns.subjective;
+	  s = options.possessive ? item.pronouns.poss_adj : item.pronouns.subjective;
       s += util.getNameModifiers(item, options); // ADDED by KV
       return s; // ADDED by KV
     }
@@ -610,13 +656,13 @@ window.onclick = function(event) {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="itemLinks.html">itemLinks</a></li><li><a href="lang.getName.html">getName</a></li><li><a href="lang.getNameOG.html">getNameOG</a></li><li><a href="settings.clickEvents.html">clickEvents</a></li><li><a href="settings.linksEnabled.html">linksEnabled</a></li><li><a href="tp.text_processors.exits.html">exits</a></li><li><a href="util.listContents.html">listContents</a></li><li><a href="window.onclick.html">onclick</a></li></ul><h3>Global</h3><ul><li><a href="global.html#canHold">canHold</a></li><li><a href="global.html#disableItemLink">disableItemLink</a></li><li><a href="global.html#enableItemLinks">enableItemLinks</a></li><li><a href="global.html#enterButtonPress">enterButtonPress</a></li><li><a href="global.html#getAllChildren">getAllChildren</a></li><li><a href="global.html#getAllChildrenLinks">getAllChildrenLinks</a></li><li><a href="global.html#getArticle">getArticle</a></li><li><a href="global.html#getContentsLink">getContentsLink</a></li><li><a href="global.html#getDirectChildren">getDirectChildren</a></li><li><a href="global.html#getDisplayAliasLink">getDisplayAliasLink</a></li><li><a href="global.html#getItemLink">getItemLink</a></li><li><a href="global.html#getRoomContents">getRoomContents</a></li><li><a href="global.html#getVerbsLinks">getVerbsLinks</a></li><li><a href="global.html#handleExamineHolder">handleExamineHolder</a></li><li><a href="global.html#handleObjLnkClick">handleObjLnkClick</a></li><li><a href="global.html#hasChildren">hasChildren</a></li><li><a href="global.html#toggleDropdown">toggleDropdown</a></li><li><a href="global.html#updateAllItemLinkVerbs">updateAllItemLinkVerbs</a></li><li><a href="global.html#updateExitLinks">updateExitLinks</a></li><li><a href="global.html#updateItemLinkVerbs">updateItemLinkVerbs</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="script.html">.script</a></li><li><a href="io.finish.html">finish</a></li><li><a href="io.finishBak.html">finishBak</a></li><li><a href="itemLinks.html">itemLinks</a></li><li><a href="lang.getName.html">getName</a></li><li><a href="lang.getNameOG.html">getNameOG</a></li><li><a href="settings.clickEvents.html">clickEvents</a></li><li><a href="settings.linksEnabled.html">linksEnabled</a></li><li><a href="tp.text_processors.exits.html">exits</a></li><li><a href="util.listContents.html">listContents</a></li><li><a href="window.onclick.html">onclick</a></li></ul><h3>Global</h3><ul><li><a href="global.html#canHold">canHold</a></li><li><a href="global.html#disableItemLink">disableItemLink</a></li><li><a href="global.html#enableItemLinks">enableItemLinks</a></li><li><a href="global.html#enterButtonPress">enterButtonPress</a></li><li><a href="global.html#getAllChildren">getAllChildren</a></li><li><a href="global.html#getAllChildrenLinks">getAllChildrenLinks</a></li><li><a href="global.html#getArticle">getArticle</a></li><li><a href="global.html#getContentsLink">getContentsLink</a></li><li><a href="global.html#getDirectChildren">getDirectChildren</a></li><li><a href="global.html#getDisplayAliasLink">getDisplayAliasLink</a></li><li><a href="global.html#getItemLink">getItemLink</a></li><li><a href="global.html#getRoomContents">getRoomContents</a></li><li><a href="global.html#getVerbsLinks">getVerbsLinks</a></li><li><a href="global.html#handleExamineHolder">handleExamineHolder</a></li><li><a href="global.html#handleObjLnkClick">handleObjLnkClick</a></li><li><a href="global.html#hasChildren">hasChildren</a></li><li><a href="global.html#toggleDropdown">toggleDropdown</a></li><li><a href="global.html#updateAllItemLinkVerbs">updateAllItemLinkVerbs</a></li><li><a href="global.html#updateExitLinks">updateExitLinks</a></li><li><a href="global.html#updateItemLinkVerbs">updateItemLinkVerbs</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.6</a> on Wed Dec 23 2020 15:59:26 GMT-0600 (Central Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.6</a> on Wed Dec 23 2020 23:06:06 GMT-0600 (Central Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>
