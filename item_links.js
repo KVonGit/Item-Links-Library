@@ -337,10 +337,9 @@ function toggleDropdown(element) {
  * @function handleObjLnkClick
  * @description Handles item link actions passed via clicking
  * @param {string} cmd The command to be parsed
- * @see {@link enterButtonPress}
  */
 function handleObjLnkClick(cmd){
-	enterButtonPress(cmd);
+	runCmd(cmd);
 }
 
 /** 
@@ -365,28 +364,6 @@ function enableItemLinks(el){
 	if ($(el).hasClass("disabled-dropdown")) type = 'dropdown'
 	if ($(el).hasClass("disabled-droplink")) type = 'droplink'
 	$(el).removeClass("disabled").removeClass(`disabled-${type}`).addClass(type).attr("name",$(el).attr("obj")).css("cursor","pointer");
-}
-
-/** 
- * @function enterButtonPress
- * @param {string} cmd - The player's command (normally 'entered' via click)
- * @description Inserts the clicked command into the textbox element, then parses as if the player typed it and pressed ENTER.
- * 
- * This also pushes the command to <code>io.savedCommands</code> for AGAIN purposes.  (This is exclusive to my game, not a default QuestJS thing!)
- */
-function enterButtonPress(cmd){
-	//Calling this function with no arg will cause s to default to the text in the textbox.
-	if(cmd) $('#textbox').val(cmd);
-	const s = $('#textbox').val();
-    io.msgInputText(s); //This emulates printing the echo of the player's command
-    if (s) {
-		if (io.savedCommands[io.savedCommands.length - 1] !== s) {
-			io.savedCommands.push(s);
-        }
-        io.savedCommandsPos = io.savedCommands.length;
-        parser.parse(s);
-        $('#textbox').val('');
-	}
 }
 
 /** 
