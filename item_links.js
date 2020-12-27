@@ -625,7 +625,8 @@ lang.getName = (item, options) => {
     let art = getArticle(item, options.article);
     if (!art) art = '';
     let cap = options && options.capital;
-    if (!item.room) s = getItemLink(item, s, cap);
+	//if (!item.room) s = getItemLink(item, s, cap);
+	if (!item.room && !options.noLinks) s = getItemLink(item, s, cap); // Modified by Pix to fix issue with NPC topics.
     s = art + s;
     s += util.getNameModifiers(item, options);
     return s;
